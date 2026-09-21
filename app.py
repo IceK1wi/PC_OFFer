@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
             os.system("shutdown /s /t 0")
         elif current_os == "Darwin":
             mac_cmd = 'osascript -e "do shell script \\"shutdown -h now\\" with administrator privileges"'
-            os.system("shutdown -h now")
+            os.system(mac_cmd)
         elif current_os == "Linux":
             os.system("sudo shutdown -h now")
 
