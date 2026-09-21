@@ -60,22 +60,24 @@ if __name__ == "__main__":
 
     window = MainWindow()
 
-    hwnd = int(window.winId())
+    if platform.system() == "Windows":
 
-    try:
-        DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-        dark_mode = ctypes.c_int(1)
+        hwnd = int(window.winId())
 
-        ctypes.windll.dwmapi.DwmSetWindowAttribute(
-            hwnd,
-            DWMWA_USE_IMMERSIVE_DARK_MODE,
-            ctypes.byref(dark_mode),
-            ctypes.sizeof(dark_mode)
-        )
-        ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0020)
+        try:
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+            dark_mode = ctypes.c_int(1)
 
-    except Exception as e:
-        print("Не удалось применить темную тему для заголовка:", e)    
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_USE_IMMERSIVE_DARK_MODE,
+                ctypes.byref(dark_mode),
+                ctypes.sizeof(dark_mode)
+            )
+            ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0020)
+
+        except Exception as e:
+            print("Не удалось применить темную тему для заголовка:", e)    
 
 window.show()
 
