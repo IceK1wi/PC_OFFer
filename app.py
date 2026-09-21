@@ -48,8 +48,12 @@ class MainWindow(QMainWindow):
 
         if current_os == "Windows":
             os.system("shutdown /s /t 0")
-        elif current_os in ["Linux","Darwin"]:
+        elif current_os == "Darwin":
+            mac_cmd = 'osascript -e "do shell script \\"shutdown -h now\\" with administrator privileges"'
             os.system("shutdown -h now")
+        elif current_os == "Linux":
+            os.system("sudo shutdown -h now")
+
 
 if __name__ == "__main__":            
 
