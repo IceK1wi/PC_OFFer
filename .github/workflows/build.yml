@@ -1,0 +1,67 @@
+name: Кросс-платформенная сборка (PyQt6)
+
+on:
+  push:
+    branches: [ "main", "master" ] # Запускать сборку при отправке кода в эти ветки
+  workflow_dispatch: # Позволяет запускать сборку вручную одной кнопкой на сайте
+
+jobs:
+  build:
+    name: Сборка на ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Запускаем одновременно три разные операционные системы в облаке
+        include:
+          - os: windows-latest
+            artifact_name: app-windows.exe
+            asset_name: app.exe
+            sep: ";"
+          - os: ubuntu-latest
+            artifact_name: app-linux-elf
+            asset_name: app
+            sep: ":"
+          - os: macos-latest
+            artifact_name: app-macos
+            asset_name: app
+            sep: ":"
+
+    steps:
+    - name: Проверка (клонирование) кода
+      uses: actions/checkout@v4
+
+    - name: Настройка Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # Стабильная версия Python для PyQt6
+
+    - name: Установка системных зависимостей (только для Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libegl1-mesa libgl1-mesa-glx libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xinput0 libxcb-xfixes0
+
+    - name: Установка библиотек Python
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pyqt6 numpy
+
+    - name: Компиляция приложения через PyInstaller
+      run: |
+        pyinstaller --onefile --noconsole --add-data "style.css${{ matrix.sep }}." app.py
+      # Примечание: если ваш файл называется не app.py, замените имя в строке выше!
+
+    - name: Переименование готового файла под архитектуру
+      shell: bash
+      run: |
+        mv dist/${{ matrix.asset_name }} dist/${{ matrix.artifact_name }}
+        # Для macOS дополнительно сохраняем полноценную .app папку, если она создалась
+        if [ "${{ matrix.os }}" = "macos-latest" ] && [ -d "dist/app.app" ]; then
+          zip -r dist/app-macos-folder.zip dist/app.app
+        fi
+
+    - name: Загрузка готовых файлов в хранилище GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.artifact_name }}

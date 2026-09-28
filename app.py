@@ -8,11 +8,16 @@ if platform.system() == "Windows":
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel 
 
-def load_stylesheet(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
+def loadStylesheet(fileName="style.css"):
+    try:
+        basePath = sys._MEIPASS
+    except Exception:
+        basePath = os.path.dirname(os.path.abspath(__file__))
+    fullPath = os.path.join(basePath,fileName)
+    if os.path.exists(fullPath):
+        with open(fullPath, "r", encoding="utf-8") as f:
             return f.read()
-    print(f"Предупреждение: Файл стиля {file_path} не найден!")
+    print(f"Предупреждение: Файл стиля {fullPath} не найден!")
     return ""
 
 class MainWindow(QMainWindow):
@@ -31,6 +36,9 @@ class MainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
+        styleContent = loadStylesheet("style.css")
+        self.setStyleSheet(styleContent)
+        
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
 
@@ -138,7 +146,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    css = load_stylesheet("style.css")
+    css = loadStylesheet("style.css")
     app.setStyleSheet(css)
 
     window = MainWindow()
