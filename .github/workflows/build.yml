@@ -1,8 +1,6 @@
 name: Кросс-платформенная сборка (PyQt6)
 
 on:
-  push:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
