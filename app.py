@@ -6,7 +6,7 @@ if platform.system() == "Windows":
     import winreg
 
 from PyQt6.QtCore import QSize, Qt, QTimer
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel 
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel 
 
 def load_stylesheet(file_path):
     if os.path.exists(file_path):
@@ -24,46 +24,86 @@ class MainWindow(QMainWindow):
         if platform.system() == "Windows":
             self.current_theme = None
             self.theme_timer = QTimer(self)
-            self.theme_timer.timeout.connect(self.check_system_theme_win)
+            self.theme_timer.timeout.connect(self.checkSystemThemeWin)
             self.theme_timer.start(1000)
-            self.check_system_theme_win()
+            self.checkSystemThemeWin()
 
         self.init_ui()
 
     def init_ui(self):
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
 
-        layout = QVBoxLayout(central_widget)
+        layout = QVBoxLayout(centralWidget)
         layout.setContentsMargins(30, 40, 30, 40)
         layout.setSpacing(15)
+
+        buttonsLayout = QHBoxLayout()
+        buttonsLayout.setSpacing(15)
 
         text = QLabel("А ты всё сохранил или нит?")
         text.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        button = QPushButton("Вырубай")
-        button.setCursor(Qt.CursorShape.PointingHandCursor)
-        button.setFixedSize(160,45)
+        buttonShutDown = QPushButton("Вырубай")
+        buttonShutDown.setCursor(Qt.CursorShape.PointingHandCursor)
+        buttonShutDown.setFixedSize(160,45)
 
-        button.clicked.connect(self.shutdown_computer)
+        buttonSleepMod = QPushButton("Спать")
+        buttonSleepMod.setCursor(Qt.CursorShape.PointingHandCursor)
+        buttonSleepMod.setFixedSize(160,45)
+
+        buttonReboot = QPushButton("Всё по новой")
+        buttonReboot.setCursor(Qt.CursorShape.PointingHandCursor)
+        buttonReboot.setFixedSize(160,45)
+
+        buttonsLayout.addStretch()
+        buttonsLayout.addWidget(buttonShutDown, alignment=Qt.AlignmentFlag.AlignHCenter)
+        buttonsLayout.addWidget(buttonSleepMod, alignment=Qt.AlignmentFlag.AlignHCenter)
+        buttonsLayout.addWidget(buttonReboot,alignment=Qt.AlignmentFlag.AlignHCenter)
+        buttonsLayout.addStretch()
+
+        buttonShutDown.clicked.connect(self.shutDownComputer)
+
+        buttonSleepMod.clicked.connect(self.sleepModComputer)
+
+        buttonReboot.clicked.connect(self.rebootModComputer)
 
         layout.addStretch()
         layout.addWidget(text)
-        layout.addWidget(button, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addLayout(buttonsLayout)
         layout.addStretch()
 
-    def shutdown_computer(self):
-        current_os = platform.system()
+    def shutDownComputer(self):
+        currentOs = platform.system()
 
-        if current_os == "Windows":
+        if currentOs == "Windows":
             os.system("shutdown /s /t 0")
-        elif current_os == "Darwin":
-            mac_cmd = 'osascript -e "do shell script \\"shutdown -h now\\" with administrator privileges"'
-            os.system(mac_cmd)
-        elif current_os == "Linux":
+        elif currentOs == "Darwin":
+            os.system("osascript -e 'tell app \"System Events\" to shut down'")
+        elif currentOs == "Linux":
             os.system("sudo shutdown -h now")
 
-    def check_system_theme_win(self):
+    def sleepModComputer(self):
+        currentOs = platform.system()
+
+        if currentOs == "Windows":
+            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+        elif currentOs =="Darwin":
+            os.system("osascript -e 'tell app\"System Events\" to sleep'")
+        elif currentOs == "Linux":
+            os.system("systemctl suspend")
+
+    def rebootModComputer(self):
+        currentOs = platform.system()
+
+        if currentOs == "Windows":
+            os.system("shutdown /r /t 0")
+        elif currentOs == "Darwin":
+            os.system("osascript -e 'tell app \"System Events\" to restart")
+        elif currentOs == "Linus":
+            os.system("systemctl reboot")
+
+    def checkSystemThemeWin(self):
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
             value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
@@ -73,20 +113,20 @@ class MainWindow(QMainWindow):
 
         if is_dark_mode != self.current_theme:
             self.current_theme = is_dark_mode
-            self.update_windows_title_bar(is_dark_mode)
+            self.updateWindowsTitleBar(is_dark_mode)
 
-    def update_windows_title_bar(self, is_dark):
+    def updateWindowsTitleBar(self, is_dark):
             hwnd = int(self.winId())
         
             try:
                 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-                dark_mode = ctypes.c_int(1 if is_dark else 0)
+                darkMode = ctypes.c_int(1 if is_dark else 0)
         
                 ctypes.windll.dwmapi.DwmSetWindowAttribute(
                     hwnd,
                     DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    ctypes.byref(dark_mode),
-                    ctypes.sizeof(dark_mode)
+                    ctypes.byref(darkMode),
+                    ctypes.sizeof(darkMode)
                 )
                 ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0002 | 0x0001 | 0x0020)
             except Exception as e:
